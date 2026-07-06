@@ -1,0 +1,50 @@
+shared:
+  posty:
+    type: postgres
+workloads:
+  demo-app:
+    resources:
+      score-workload:
+        params:
+          containers:
+            main:
+              image: ghcr.io/astromechza/demo-app:latest
+              variables:
+                OVERRIDE_POSTGRES: postgres://${shared.posty.outputs.username}:${shared.posty.outputs.password}@${shared.posty.outputs.hostname}:${shared.posty.outputs.port}/${shared.posty.outputs.database}
+          metadata:
+            name: demo-app
+          service:
+            ports:
+              web:
+                port: 80
+                targetPort: 8080
+        type: score-workload
+      score2-workload:
+        params:
+          containers:
+            main:
+              image: ghcr.io/astromechza/demo-app:latest
+              variables:
+                OVERRIDE_POSTGRES: postgres://${shared.posty.outputs.username}:${shared.posty.outputs.password}@${shared.posty.outputs.hostname}:${shared.posty.outputs.port}/${shared.posty.outputs.database}
+          metadata:
+            name: demo2-app
+          service:
+            ports:
+              web:
+                port: 80
+                targetPort: 8080
+        type: score-workload
+      route:
+        type: route
+        params:
+          hostname: funnyco.de
+          path: /
+          service: demo-app
+          service_port: 80
+      route2:
+        type: route
+        params:
+          hostname: demo2.funnyco.de
+          path: /
+          service: demo2-app
+          service_port: 80

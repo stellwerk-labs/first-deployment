@@ -25,17 +25,17 @@ output "oidc_issuer_url" {
 }
 
 output "runner_identity_client_id" {
-  description = "Humanitec runner managed identity client ID"
-  value       = azurerm_user_assigned_identity.humanitec_runner.client_id
+  description = "Platform Orchestrator runner managed identity client ID"
+  value       = azurerm_user_assigned_identity.platform_orchestrator_runner.client_id
 }
 
 output "runner_id" {
-  description = "Humanitec runner ID"
+  description = "Platform Orchestrator runner ID"
   value       = module.runner.runner_id
 }
 
 output "runner_rule_id" {
-  description = "Humanitec runner rule ID"
+  description = "Platform Orchestrator runner rule ID"
   value       = module.runner.runner_rule_id
 }
 

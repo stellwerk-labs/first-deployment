@@ -28,7 +28,7 @@ resource "aws_subnet" "subnet" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                                     = "${var.prefix}-first-deployment-subnet-${count.index + 1}"
+    Name                                          = "${var.prefix}-first-deployment-subnet-${count.index + 1}"
     "kubernetes.io/cluster/${local.cluster_name}" = "shared"
   }
 }
@@ -178,9 +178,9 @@ resource "aws_iam_openid_connect_provider" "eks" {
   url             = aws_eks_cluster.cluster.identity[0].oidc[0].issuer
 }
 
-# IAM Role for Humanitec Runner (IRSA)
-resource "aws_iam_role" "humanitec_runner" {
-  name = "${var.prefix}-humanitec-runner-role"
+# IAM Role for Platform Orchestrator Runner (IRSA)
+resource "aws_iam_role" "platform_orchestrator_runner" {
+  name = "${var.prefix}-platform-orchestrator-runner-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -193,7 +193,7 @@ resource "aws_iam_role" "humanitec_runner" {
         }
         Condition = {
           StringEquals = {
-            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:${kubernetes_namespace.runner.metadata[0].name}:${var.prefix}-humanitec-runner-sa"
+            "${replace(aws_iam_openid_connect_provider.eks.url, "https://", "")}:sub" = "system:serviceaccount:${kubernetes_namespace.runner.metadata[0].name}:${var.prefix}-platform-orchestrator-runner-sa"
           }
         }
       }
@@ -201,10 +201,10 @@ resource "aws_iam_role" "humanitec_runner" {
   })
 }
 
-# Policy for Humanitec Runner
-resource "aws_iam_role_policy" "humanitec_runner" {
-  name = "${var.prefix}-humanitec-runner-policy"
-  role = aws_iam_role.humanitec_runner.id
+# Policy for Platform Orchestrator Runner
+resource "aws_iam_role_policy" "platform_orchestrator_runner" {
+  name = "${var.prefix}-platform-orchestrator-runner-policy"
+  role = aws_iam_role.platform_orchestrator_runner.id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -229,8 +229,8 @@ resource "aws_iam_role_policy" "humanitec_runner" {
 
 # Create IAM user for inner runner (jobs need explicit AWS credentials)
 resource "aws_iam_user" "runner_user" {
-  name = "${var.prefix}-humanitec-runner"
-  path = "/humanitec/"
+  name = "${var.prefix}-platform-orchestrator-runner"
+  path = "/platform-orchestrator/"
 }
 
 # Create access key for the runner user
@@ -239,9 +239,9 @@ resource "aws_iam_access_key" "runner_key" {
 }
 
 # Create a standalone policy with the same permissions as the role policy
-resource "aws_iam_policy" "humanitec_runner_user" {
-  name = "${var.prefix}-humanitec-runner-user-policy"
-  path = "/humanitec/"
+resource "aws_iam_policy" "platform_orchestrator_runner_user" {
+  name = "${var.prefix}-platform-orchestrator-runner-user-policy"
+  path = "/platform-orchestrator/"
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -267,7 +267,7 @@ resource "aws_iam_policy" "humanitec_runner_user" {
 # Attach the policy to the IAM user
 resource "aws_iam_user_policy_attachment" "runner_policy" {
   user       = aws_iam_user.runner_user.name
-  policy_arn = aws_iam_policy.humanitec_runner_user.arn
+  policy_arn = aws_iam_policy.platform_orchestrator_runner_user.arn
 }
 
 # Read the AWS credentials template
@@ -311,8 +311,8 @@ resource "kubernetes_config_map" "aws_auth" {
         ]
       },
       {
-        rolearn  = aws_iam_role.humanitec_runner.arn
-        username = "humanitec-runner"
+        rolearn  = aws_iam_role.platform_orchestrator_runner.arn
+        username = "platform-orchestrator-runner"
         groups = [
           "system:masters",
         ]

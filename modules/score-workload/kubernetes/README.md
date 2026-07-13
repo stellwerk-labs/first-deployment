@@ -1,6 +1,6 @@
 # score-workload-tofu
 
-This is a Terraform / OpenTofu compatible module to be used to provision `score-workload` resources ontop of Kubernetes for the Humanitec Orchestrator.
+This is a Terraform / OpenTofu compatible module to be used to provision `score-workload` resources ontop of Kubernetes for the Platform Orchestrator Orchestrator.
 
 ## Requirements
 
@@ -18,7 +18,7 @@ Install this with the `canyon` CLI, you should replace the `CHANGEME` in the pro
 ```shell
 canyon create module-definition \
     --set=resource_type=score-workload \
-    --set=module_source=git::https://github.com/humanitec/module-definition-library//score-workload/kubernetes \
+    --set=module_source=git::https://github.com/stellwerk-labs/module-definition-library//score-workload/kubernetes \
     --set=provider_mapping='{"kubernetes": "CHANGEME"}' \
     --set=module_inputs='{"namespace": "CHANGEME"}'
 ```

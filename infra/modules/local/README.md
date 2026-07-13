@@ -9,7 +9,7 @@ This module provides a local Kubernetes development environment using [KinD (Kub
 - **Easy DNS** - Uses localtest.me (automatically resolves to 127.0.0.1)
 - **Ingress Ready** - NGINX Ingress Controller pre-configured
 - **CloudNativePG** - In-cluster PostgreSQL support
-- **Humanitec Integration** - Full Platform Orchestrator support
+- **Platform Orchestrator Integration** - Full Platform Orchestrator support
 
 ## Prerequisites
 
@@ -57,8 +57,8 @@ module "local" {
   base_domain          = var.local_base_domain
   ingress_http_port    = var.local_ingress_http_port
   ingress_https_port   = var.local_ingress_https_port
-  humanitec_org        = var.humanitec_org
-  humanitec_auth_token = var.humanitec_auth_token
+  orchestrator_org        = var.orchestrator_org
+  orchestrator_auth_token = var.orchestrator_auth_token
   public_key_pem       = tls_private_key.agent_runner_key.public_key_pem
   private_key_pem      = tls_private_key.agent_runner_key.private_key_pem
   project_id           = platform-orchestrator_project.project.id
@@ -74,8 +74,8 @@ Create or edit `terraform.tfvars`:
 
 ```hcl
 # Required
-humanitec_org        = "your-org-id"
-humanitec_auth_token = "your-token"
+orchestrator_org        = "your-org-id"
+orchestrator_auth_token = "your-token"
 
 # Optional - customize if needed
 prefix                  = "dev"                        # Default: random 4 chars
@@ -98,7 +98,7 @@ This will:
 1. Create a KinD cluster
 2. Install NGINX Ingress Controller
 3. Install CloudNativePG operator
-4. Deploy Humanitec runner
+4. Deploy Platform Orchestrator runner
 5. Create `{prefix}-local-dev` environment
 
 ### 4. Deploy Your Application
@@ -190,11 +190,11 @@ curl http://app.localtest.me:8080
 | `base_domain` | Base domain for ingress | `localtest.me` | No |
 | `ingress_http_port` | HTTP port on host | `80` | No |
 | `ingress_https_port` | HTTPS port on host | `443` | No |
-| `humanitec_org` | Humanitec organization ID | (from root) | Yes |
-| `humanitec_auth_token` | Humanitec API token | (from root) | Yes |
+| `orchestrator_org` | Platform Orchestrator organization ID | (from root) | Yes |
+| `orchestrator_auth_token` | Platform Orchestrator API token | (from root) | Yes |
 | `public_key_pem` | Runner public key | (from root) | Yes |
 | `private_key_pem` | Runner private key | (from root) | Yes |
-| `project_id` | Humanitec project ID | (from root) | Yes |
+| `project_id` | Platform Orchestrator project ID | (from root) | Yes |
 | `env_type_id` | Environment type ID | (from root) | Yes |
 
 ## Outputs
@@ -280,14 +280,14 @@ kind delete cluster --name {prefix}-first-deployment-local
 
 ### Runner Not Connecting
 
-**Issue**: Humanitec runner fails to connect
+**Issue**: Platform Orchestrator runner fails to connect
 
 **Checks**:
 
 1. **Check runner logs**:
    ```bash
    kubectl --context kind-{prefix}-first-deployment-local \
-     -n {prefix}-humanitec-runner logs -l app.kubernetes.io/name=humanitec-kubernetes-agent-runner
+     -n {prefix}-platform-orchestrator-runner logs -l app.kubernetes.io/name=platform-orchestrator-kubernetes-agent-runner
    ```
 
 2. **Verify runner registration**:
@@ -310,7 +310,7 @@ terraform destroy
 ```
 
 This will:
-1. Delete the Humanitec environment
+1. Delete the Platform Orchestrator environment
 2. Remove the runner
 3. Delete the KinD cluster
 4. Clean up all resources
@@ -394,7 +394,7 @@ To enable HTTPS with self-signed certificates:
 2. Create Kubernetes secret
 3. Configure Ingress with TLS
 
-See the Humanitec documentation for details.
+See the Platform Orchestrator documentation for details.
 
 ## Resources
 
@@ -402,4 +402,4 @@ See the Humanitec documentation for details.
 - [localtest.me Info](http://readme.localtest.me/)
 - [NGINX Ingress Controller](https://kubernetes.github.io/ingress-nginx/)
 - [CloudNativePG](https://cloudnative-pg.io/)
-- [Humanitec Platform Orchestrator](https://developer.humanitec.com/)
+- [Platform Orchestrator](https://docs.stellwerk.dev/)

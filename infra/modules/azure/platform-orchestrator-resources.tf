@@ -14,7 +14,7 @@ resource "platform-orchestrator_provider" "azurerm" {
     var.azure_client_id != "" ? {
       client_id     = var.azure_client_id
       client_secret = var.azure_client_secret
-    } : {
+      } : {
       use_cli                   = false
       use_aks_workload_identity = true
     }
@@ -24,14 +24,14 @@ resource "platform-orchestrator_provider" "azurerm" {
 # VM Fleet Module for Azure
 resource "platform-orchestrator_module" "vm_fleet" {
   id            = "vm-fleet-azure"
-  resource_type = var.vm_fleet_resource_type_id  # Reference from root to create dependency
+  resource_type = var.vm_fleet_resource_type_id # Reference from root to create dependency
   provider_mapping = {
     azurerm = "azurerm.default"
   }
-  module_source = "git::https://github.com/humanitec-tutorials/first-deployment//modules/vm-fleet/azure"
+  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/vm-fleet/azure"
 
   depends_on = [
-    platform-orchestrator_provider.azurerm  # Ensure Azure provider exists first
+    platform-orchestrator_provider.azurerm # Ensure Azure provider exists first
   ]
 }
 

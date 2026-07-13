@@ -27,7 +27,7 @@ resource "platform-orchestrator_environment" "score" {
 
 # Module rule for ansible_score_workload in GCP environments
 resource "platform-orchestrator_module_rule" "ansible_score_workload" {
-  module_id  = "ansible-score-workload"  # References module created in root humanitec.tf
+  module_id  = "ansible-score-workload" # References module created in root platform-orchestrator.tf
   env_id     = platform-orchestrator_environment.score.id
   project_id = var.project_id
 }

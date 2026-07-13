@@ -14,14 +14,14 @@ resource "platform-orchestrator_provider" "aws" {
 # VM Fleet Module for AWS
 resource "platform-orchestrator_module" "vm_fleet" {
   id            = "vm-fleet-aws"
-  resource_type = var.vm_fleet_resource_type_id  # Reference from root to create dependency
+  resource_type = var.vm_fleet_resource_type_id # Reference from root to create dependency
   provider_mapping = {
     aws = "aws.default"
   }
-  module_source = "git::https://github.com/humanitec-tutorials/first-deployment//modules/vm-fleet/aws"
+  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/vm-fleet/aws"
 
   depends_on = [
-    platform-orchestrator_provider.aws  # Ensure AWS provider exists first
+    platform-orchestrator_provider.aws # Ensure AWS provider exists first
   ]
 }
 

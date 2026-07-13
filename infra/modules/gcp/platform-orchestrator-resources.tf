@@ -35,7 +35,7 @@ resource "platform-orchestrator_module" "bucket" {
   id            = "gcs-bucket"
   description   = "Module for a Google Cloud Storage bucket"
   resource_type = platform-orchestrator_resource_type.bucket.id
-  module_source = "git::https://github.com/humanitec-tutorials/first-deployment//modules/bucket"
+  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/bucket"
   provider_mapping = {
     google = "google.default"
   }
@@ -44,7 +44,7 @@ resource "platform-orchestrator_module" "bucket" {
   })
 
   depends_on = [
-    platform-orchestrator_provider.google  # Ensure Google provider exists first
+    platform-orchestrator_provider.google # Ensure Google provider exists first
   ]
 }
 
@@ -78,7 +78,7 @@ resource "platform-orchestrator_module" "queue" {
   id            = "pub-sub-topic"
   description   = "Module for a Google Cloud Pub/Sub topic"
   resource_type = platform-orchestrator_resource_type.queue.id
-  module_source = "git::https://github.com/humanitec-tutorials/first-deployment//modules/pub-sub-topic"
+  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/pub-sub-topic"
   provider_mapping = {
     google = "google.default"
   }
@@ -118,7 +118,7 @@ resource "platform-orchestrator_module" "k8s_service_account" {
   id            = "k8s-service-account"
   description   = "Module for a Kubernetes service account"
   resource_type = platform-orchestrator_resource_type.k8s_service_account.id
-  module_source = "git::https://github.com/humanitec-tutorials/first-deployment//modules/k8s-service-account"
+  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/k8s-service-account"
   provider_mapping = {
     kubernetes = "kubernetes.default"
     google     = "google.default"
@@ -136,7 +136,7 @@ resource "platform-orchestrator_module" "k8s_service_account" {
   })
 
   depends_on = [
-    platform-orchestrator_provider.google  # Ensure Google provider exists first
+    platform-orchestrator_provider.google # Ensure Google provider exists first
   ]
 }
 
@@ -151,14 +151,14 @@ resource "platform-orchestrator_module_rule" "k8s_service_account" {
 # VM Fleet Module for GCP
 resource "platform-orchestrator_module" "vm_fleet" {
   id            = "vm-fleet-gcp"
-  resource_type = var.vm_fleet_resource_type_id  # Reference from root to create dependency
+  resource_type = var.vm_fleet_resource_type_id # Reference from root to create dependency
   provider_mapping = {
     google = "google.default"
   }
-  module_source = "git::https://github.com/humanitec-tutorials/first-deployment//modules/vm-fleet/google"
+  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/vm-fleet/google"
 
   depends_on = [
-    platform-orchestrator_provider.google  # Ensure Google provider exists first
+    platform-orchestrator_provider.google # Ensure Google provider exists first
   ]
 }
 

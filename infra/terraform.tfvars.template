@@ -1,15 +1,15 @@
-# Terraform Variables Template for Humanitec Tutorial
+# Terraform Variables Template for Platform Orchestrator Tutorial
 # Copy this file to terraform.tfvars and fill in your values
 
 # =============================================================================
-# REQUIRED: Humanitec Configuration
+# REQUIRED: Platform Orchestrator Configuration
 # =============================================================================
 
-# Your Humanitec organization ID
-humanitec_org = "your-org-id"
+# Your Platform Orchestrator organization ID
+orchestrator_org = "your-org-id"
 
-# Your Humanitec API token (get from: https://console.humanitec.dev/orgs/[yourOrgHere]/service-users)
-humanitec_auth_token = "your-api-token-here"
+# Your Platform Orchestrator service-user API token
+orchestrator_auth_token = "your-api-token-here"
 
 # =============================================================================
 # AWS Configuration (OPTIONAL - only needed if AWS is in enabled_cloud_providers)
@@ -66,9 +66,8 @@ humanitec_auth_token = "your-api-token-here"
 #    - GCP: Set GOOGLE_APPLICATION_CREDENTIALS or use gcloud auth
 #    - Azure: Use az login or set environment variables
 #
-# 4. Get your Humanitec API token:
-#    - Go to https://console.humanitec.dev/orgs/[yourOrgHere]/service-users
-#    - Create a new token with appropriate permissions
+# 4. Get your Platform Orchestrator API token:
+#    - Create a service-user token with appropriate permissions in your installation
 #
 # 5. Initialize and apply:
 #    terraform init

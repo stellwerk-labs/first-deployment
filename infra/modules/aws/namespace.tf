@@ -1,7 +1,7 @@
 # Runner namespace for this AWS cluster
 resource "kubernetes_namespace" "runner" {
   metadata {
-    name = "${var.prefix}-humanitec-runner"
+    name = "${var.prefix}-platform-orchestrator-runner"
   }
 
   timeouts {

@@ -24,7 +24,7 @@ output "ingress_https_url" {
 }
 
 output "runner_namespace" {
-  description = "Namespace where the Humanitec runner is deployed"
+  description = "Namespace where the Platform Orchestrator runner is deployed"
   value       = local.create_local ? kubernetes_namespace.runner.metadata[0].name : null
 }
 

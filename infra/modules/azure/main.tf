@@ -27,8 +27,8 @@ resource "azurerm_user_assigned_identity" "aks" {
   resource_group_name = azurerm_resource_group.main.name
 }
 
-# User Assigned Managed Identity for Humanitec Runner
-resource "azurerm_user_assigned_identity" "humanitec_runner" {
+# User Assigned Managed Identity for Platform Orchestrator Runner
+resource "azurerm_user_assigned_identity" "platform_orchestrator_runner" {
   location            = azurerm_resource_group.main.location
   name                = "${var.prefix}-first-deployment-runner-identity"
   resource_group_name = azurerm_resource_group.main.name
@@ -53,7 +53,7 @@ resource "azurerm_kubernetes_cluster" "cluster" {
     identity_ids = [azurerm_user_assigned_identity.aks.id]
   }
 
-  # Enable workload identity for Humanitec runner authentication
+  # Enable workload identity for Platform Orchestrator runner authentication
   oidc_issuer_enabled       = true
   workload_identity_enabled = true
 
@@ -70,28 +70,28 @@ resource "azurerm_role_assignment" "aks_network_contributor" {
   principal_id         = azurerm_user_assigned_identity.aks.principal_id
 }
 
-# Role assignment for Humanitec runner - Contributor on subscription
-resource "azurerm_role_assignment" "humanitec_aksmi_contributor" {
+# Role assignment for Platform Orchestrator runner - Contributor on subscription
+resource "azurerm_role_assignment" "platform_orchestrator_aksmi_contributor" {
   scope                = "/subscriptions/${var.azure_subscription_id}"
   role_definition_name = "Contributor"
   principal_id         = azurerm_user_assigned_identity.aks.principal_id
 }
 
-# Role assignment for Humanitec runner - Contributor on subscription
-resource "azurerm_role_assignment" "humanitec_runner_contributor" {
+# Role assignment for Platform Orchestrator runner - Contributor on subscription
+resource "azurerm_role_assignment" "platform_orchestrator_runner_contributor" {
   scope                = "/subscriptions/${var.azure_subscription_id}"
   role_definition_name = "Contributor"
-  principal_id         = azurerm_user_assigned_identity.humanitec_runner.principal_id
+  principal_id         = azurerm_user_assigned_identity.platform_orchestrator_runner.principal_id
 }
 
-# Federated identity credential for Humanitec runner workload identity
-resource "azurerm_federated_identity_credential" "humanitec_runner" {
-  name                = "${var.prefix}-humanitec-runner-federated-credential"
+# Federated identity credential for Platform Orchestrator runner workload identity
+resource "azurerm_federated_identity_credential" "platform_orchestrator_runner" {
+  name                = "${var.prefix}-platform-orchestrator-runner-federated-credential"
   resource_group_name = azurerm_resource_group.main.name
   audience            = ["api://AzureADTokenExchange"]
   issuer              = azurerm_kubernetes_cluster.cluster.oidc_issuer_url
-  parent_id           = azurerm_user_assigned_identity.humanitec_runner.id
-  subject             = "system:serviceaccount:${kubernetes_namespace.runner.metadata[0].name}:${var.prefix}-humanitec-runner-sa-inner"
+  parent_id           = azurerm_user_assigned_identity.platform_orchestrator_runner.id
+  subject             = "system:serviceaccount:${kubernetes_namespace.runner.metadata[0].name}:${var.prefix}-platform-orchestrator-runner-sa-inner"
 }
 
 # Data source for Azure client config

@@ -1,5 +1,5 @@
 output "runner_id" {
-  description = "ID of the Humanitec runner"
+  description = "ID of the Platform Orchestrator runner"
   value       = platform-orchestrator_kubernetes_agent_runner.agent_runner.id
 }
 
@@ -10,10 +10,10 @@ output "runner_rule_id" {
 
 output "helm_release_name" {
   description = "Name of the Helm release"
-  value       = helm_release.humanitec_runner.name
+  value       = helm_release.platform_orchestrator_runner.name
 }
 
 output "helm_release_namespace" {
   description = "Namespace of the Helm release"
-  value       = helm_release.humanitec_runner.namespace
+  value       = helm_release.platform_orchestrator_runner.namespace
 }

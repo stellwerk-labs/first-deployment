@@ -1,5 +1,5 @@
 output "platform_orchestrator_metadata" {
-  description = "Metadata for Humanitec."
+  description = "Metadata for Platform Orchestrator."
   value = merge(
     {
       "Kubernetes-Namespace" = var.namespace

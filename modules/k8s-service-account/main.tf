@@ -17,7 +17,7 @@ resource "random_id" "service_account_name" {
 
 resource "kubernetes_service_account" "service_account" {
   metadata {
-    name = random_id.service_account_name.hex
+    name      = random_id.service_account_name.hex
     namespace = var.namespace
 
     annotations = {

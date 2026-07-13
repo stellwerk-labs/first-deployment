@@ -20,12 +20,12 @@ output "service_account_email" {
 }
 
 output "runner_id" {
-  description = "Humanitec runner ID"
+  description = "Platform Orchestrator runner ID"
   value       = module.runner.runner_id
 }
 
 output "runner_rule_id" {
-  description = "Humanitec runner rule ID"
+  description = "Platform Orchestrator runner rule ID"
   value       = module.runner.runner_rule_id
 }
 

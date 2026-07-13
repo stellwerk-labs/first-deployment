@@ -11,8 +11,8 @@ terraform {
       version = "~> 2.38.0"
     }
     platform-orchestrator = {
-      source  = "humanitec/platform-orchestrator"
-      version = ">= 2.9.1"
+      source  = "stellwerk-labs/platform-orchestrator"
+      version = "~> 1.0"
     }
     null = {
       source  = "hashicorp/null"

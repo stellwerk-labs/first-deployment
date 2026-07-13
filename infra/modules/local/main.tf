@@ -40,7 +40,7 @@ resource "null_resource" "kind_cluster" {
 
   triggers = {
     cluster_name = local.cluster_name
-    config_hash  = md5(jsonencode({
+    config_hash = md5(jsonencode({
       http_port  = var.ingress_http_port
       https_port = var.ingress_https_port
     }))

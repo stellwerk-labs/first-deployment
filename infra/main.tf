@@ -9,8 +9,8 @@ terraform {
   required_providers {
     # Common providers that are always needed
     platform-orchestrator = {
-      source  = "humanitec/platform-orchestrator"
-      version = ">= 2.9.1"
+      source  = "stellwerk-labs/platform-orchestrator"
+      version = "~> 1.0"
     }
 
     tls = {
@@ -36,20 +36,20 @@ terraform {
     # Cloud provider-specific providers
     # Only needed if corresponding cloud module is enabled
     # kubernetes and helm are configured in each cloud module
-  #   google = {
-  #     source  = "hashicorp/google"
-  #     version = "~> 6.13"
-  #   }
+    #   google = {
+    #     source  = "hashicorp/google"
+    #     version = "~> 6.13"
+    #   }
 
-  #   aws = {
-  #     source  = "hashicorp/aws"
-  #     version = "~> 5.82"
-  #   }
+    #   aws = {
+    #     source  = "hashicorp/aws"
+    #     version = "~> 5.82"
+    #   }
 
-  #   azurerm = {
-  #     source  = "hashicorp/azurerm"
-  #     version = "~> 4.13"
-  #   }
+    #   azurerm = {
+    #     source  = "hashicorp/azurerm"
+    #     version = "~> 4.13"
+    #   }
   }
 }
 
@@ -95,8 +95,8 @@ locals {
 #   base_domain          = var.local_base_domain
 #   ingress_http_port    = var.local_ingress_http_port
 #   ingress_https_port   = var.local_ingress_https_port
-#   humanitec_org        = var.humanitec_org
-#   humanitec_auth_token = var.humanitec_auth_token
+#   orchestrator_org        = var.orchestrator_org
+#   orchestrator_auth_token = var.orchestrator_auth_token
 #   public_key_pem       = tls_private_key.agent_runner_key.public_key_pem
 #   private_key_pem      = tls_private_key.agent_runner_key.private_key_pem
 #   project_id           = platform-orchestrator_project.project.id
@@ -110,8 +110,8 @@ locals {
 #   gcp_project_id             = var.gcp_project_id
 #   gcp_region                 = var.gcp_region
 #   gcp_zone                   = var.gcp_zone
-#   humanitec_org              = var.humanitec_org
-#   humanitec_auth_token       = var.humanitec_auth_token
+#   orchestrator_org              = var.orchestrator_org
+#   orchestrator_auth_token       = var.orchestrator_auth_token
 #   public_key_pem             = tls_private_key.agent_runner_key.public_key_pem
 #   private_key_pem            = tls_private_key.agent_runner_key.private_key_pem
 #   project_id                 = platform-orchestrator_project.project.id
@@ -124,8 +124,8 @@ locals {
 
 #   prefix                     = local.prefix
 #   aws_region                 = var.aws_region
-#   humanitec_org              = var.humanitec_org
-#   humanitec_auth_token       = var.humanitec_auth_token
+#   orchestrator_org              = var.orchestrator_org
+#   orchestrator_auth_token       = var.orchestrator_auth_token
 #   public_key_pem             = tls_private_key.agent_runner_key.public_key_pem
 #   private_key_pem            = tls_private_key.agent_runner_key.private_key_pem
 #   project_id                 = platform-orchestrator_project.project.id
@@ -142,8 +142,8 @@ locals {
 #   azure_location             = var.azure_location
 #   azure_client_id            = var.azure_client_id
 #   azure_client_secret        = var.azure_client_secret
-#   humanitec_org              = var.humanitec_org
-#   humanitec_auth_token       = var.humanitec_auth_token
+#   orchestrator_org              = var.orchestrator_org
+#   orchestrator_auth_token       = var.orchestrator_auth_token
 #   public_key_pem             = tls_private_key.agent_runner_key.public_key_pem
 #   private_key_pem            = tls_private_key.agent_runner_key.private_key_pem
 #   project_id                 = platform-orchestrator_project.project.id

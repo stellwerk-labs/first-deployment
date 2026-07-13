@@ -1,8 +1,8 @@
-# Humanitec Platform Orchestrator Provider
+# Platform Orchestrator Provider
 provider "platform-orchestrator" {
-  org_id     = var.humanitec_org
-  auth_token = var.humanitec_auth_token
-  api_url    = "https://api.humanitec.dev"
+  org_id     = var.orchestrator_org
+  auth_token = var.orchestrator_auth_token
+  api_url    = "https://api.stellwerk.localhost"
 }
 
 # Shared Kubernetes Provider (cloud-agnostic)
@@ -28,7 +28,7 @@ resource "platform-orchestrator_provider" "helm" {
 # Shared Ansible Provider (cloud-agnostic)
 resource "platform-orchestrator_provider" "ansibleplay" {
   id                 = "default"
-  description        = "Humanitec provider for Ansible playbooks"
+  description        = "Platform Orchestrator provider for Ansible playbooks"
   provider_type      = "ansibleplay"
   source             = "humanitec/ansibleplay"
   version_constraint = "~> 0.3.2"
@@ -55,7 +55,7 @@ resource "platform-orchestrator_module" "k8s_namespace" {
   id            = "k8s-namespace"
   description   = "Module for a Kubernetes namespace"
   resource_type = platform-orchestrator_resource_type.k8s_namespace.id
-  module_source = "git::https://github.com/humanitec-tutorials/first-deployment//modules/k8s-namespace"
+  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/k8s-namespace"
   provider_mapping = {
     kubernetes = "kubernetes.default"
   }
@@ -99,7 +99,7 @@ resource "platform-orchestrator_module" "in_cluster_postgres" {
   provider_mapping = {
     kubernetes = "kubernetes.default"
   }
-  module_source = "git::https://github.com/humanitec-tutorials/first-deployment//modules/postgres"
+  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/postgres"
   module_inputs = jsonencode({
     namespace = "$${resources.namespace.outputs.namespace}"
   })
@@ -139,7 +139,7 @@ resource "platform-orchestrator_resource_type" "score_workload" {
 resource "platform-orchestrator_module" "score_k8s" {
   id            = "score-k8s"
   resource_type = platform-orchestrator_resource_type.score_workload.id
-  module_source = "git::https://github.com/humanitec-tutorials/first-deployment//modules/score-workload/kubernetes"
+  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/score-workload/kubernetes"
   module_params = {
     metadata = {
       type        = "map"
@@ -233,7 +233,7 @@ resource "platform-orchestrator_module" "ansible_score_workload" {
     ssh_user        = "$${resources.fleet.outputs.ssh_username}"
     ssh_private_key = "$${resources.fleet.outputs.ssh_private_key}"
   })
-  module_source = "git::https://github.com/humanitec-tutorials/first-deployment//modules/score-workload/ansible"
+  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/score-workload/ansible"
 }
 
 # Environment Type
@@ -260,8 +260,8 @@ resource "platform-orchestrator_resource_type" "route_type" {
 resource "platform-orchestrator_module" "route" {
   id            = "http-route"
   resource_type = platform-orchestrator_resource_type.route_type.id
-  module_source = "git::https://github.com/humanitec-tf-modules/route-kubernetes-http-route"
-  depends_on = [ platform-orchestrator_provider.k8s ]
+  module_source = "git::https://github.com/stellwerk-tf-modules/route-kubernetes-http-route"
+  depends_on    = [platform-orchestrator_provider.k8s]
   provider_mapping = {
     kubernetes = "kubernetes.default"
   }

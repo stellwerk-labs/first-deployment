@@ -33,19 +33,19 @@ variable "ingress_https_port" {
   default     = 443
 }
 
-variable "humanitec_org" {
-  description = "Humanitec organization name"
+variable "orchestrator_org" {
+  description = "Platform Orchestrator organization name"
   type        = string
 }
 
-variable "humanitec_auth_token" {
-  description = "Humanitec auth token"
+variable "orchestrator_auth_token" {
+  description = "Platform Orchestrator auth token"
   type        = string
   sensitive   = true
 }
 
 variable "public_key_pem" {
-  description = "Public key PEM for Humanitec API runner registration"
+  description = "Public key PEM for Platform Orchestrator API runner registration"
   type        = string
   sensitive   = true
 }
@@ -57,11 +57,11 @@ variable "private_key_pem" {
 }
 
 variable "project_id" {
-  description = "Humanitec project ID"
+  description = "Platform Orchestrator project ID"
   type        = string
 }
 
 variable "env_type_id" {
-  description = "Humanitec environment type ID"
+  description = "Platform Orchestrator environment type ID"
   type        = string
 }

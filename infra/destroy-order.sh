@@ -2,17 +2,17 @@
 set -e
 
 # =============================================================================
-# SAFE DESTRUCTION SCRIPT FOR HUMANITEC TUTORIAL INFRASTRUCTURE
+# SAFE DESTRUCTION SCRIPT FOR PLATFORM ORCHESTRATOR TUTORIAL INFRASTRUCTURE
 # =============================================================================
 #
-# This script safely destroys the Humanitec tutorial infrastructure with:
+# This script safely destroys the Platform Orchestrator tutorial infrastructure with:
 # - Environment-first destruction to prevent dependency issues
-# - Proper Humanitec resource ordering (rules → modules → resource types)
+# - Proper Platform Orchestrator resource ordering (rules → modules → resource types)
 # - Automatic retry after 10 seconds if resources remain
 #
 # DESTRUCTION ORDER:
 # 1. Destroy cloud-specific environments first (critical dependency)
-# 2. Destroy Humanitec resources in dependency order
+# 2. Destroy Platform Orchestrator resources in dependency order
 # 3. Destroy all remaining infrastructure
 # 4. If resources remain, wait 10s and retry
 #
@@ -24,15 +24,15 @@ YELLOW='\033[1;33m'
 GREEN='\033[0;32m'
 NC='\033[0m' # No Color
 
-echo "=== Destroying Humanitec Tutorial Infrastructure with Proper Ordering ==="
+echo "=== Destroying Platform Orchestrator Tutorial Infrastructure with Proper Ordering ==="
 
 # Simple safety check with user confirmation
 safety_check() {
-    echo -e "${RED}⚠️  DANGER: This will destroy all Humanitec tutorial infrastructure!${NC}"
+    echo -e "${RED}⚠️  DANGER: This will destroy all Platform Orchestrator tutorial infrastructure!${NC}"
     echo ""
     echo -e "${YELLOW}This script will:${NC}"
     echo "  1. Destroy cloud-specific environments first (aws-dev, gcp-dev, etc.)"
-    echo "  2. Destroy Humanitec Platform Orchestrator resources in dependency order"
+    echo "  2. Destroy Platform Orchestrator resources in dependency order"
     echo "  3. Destroy Kubernetes resources before clusters to avoid connection errors"
     echo "  4. Destroy all remaining infrastructure via terraform destroy"
     echo "  5. Retry after 10 seconds if resources remain"
@@ -94,7 +94,7 @@ set -e
 echo -e "${GREEN}✅ Environments destroyed successfully!${NC}"
 echo ""
 
-echo "Step 2: Destroy Humanitec Platform Orchestrator resources in dependency order..."
+echo "Step 2: Destroy Platform Orchestrator resources in dependency order..."
 
 # Disable errexit for this section
 set +e
@@ -146,7 +146,7 @@ fi
 # Re-enable errexit
 set -e
 
-echo -e "${GREEN}✅ Humanitec resources destroyed!${NC}"
+echo -e "${GREEN}✅ Platform Orchestrator resources destroyed!${NC}"
 echo ""
 
 echo "Step 3: Destroy Kubernetes resources before clusters..."
@@ -180,7 +180,7 @@ DESTROY_EXIT_CODE=$?
 if [ $DESTROY_EXIT_CODE -eq 0 ]; then
     echo ""
     echo -e "${GREEN}🎉 Destruction completed successfully!${NC}"
-    echo "All Humanitec tutorial infrastructure has been destroyed."
+    echo "All Platform Orchestrator tutorial infrastructure has been destroyed."
     exit 0
 fi
 
@@ -214,12 +214,12 @@ REMAINING=$(terraform state list 2>/dev/null | wc -l | tr -d ' ')
 if [ "$REMAINING" -eq "0" ]; then
     echo ""
     echo -e "${GREEN}🎉 Destruction completed successfully after retry!${NC}"
-    echo "All Humanitec tutorial infrastructure has been destroyed."
+    echo "All Platform Orchestrator tutorial infrastructure has been destroyed."
     exit 0
 elif [ $DESTROY_EXIT_CODE -eq 0 ]; then
     echo ""
     echo -e "${GREEN}🎉 Destruction completed successfully!${NC}"
-    echo "All Humanitec tutorial infrastructure has been destroyed."
+    echo "All Platform Orchestrator tutorial infrastructure has been destroyed."
     exit 0
 else
     echo ""

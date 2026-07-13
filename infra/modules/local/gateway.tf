@@ -27,7 +27,7 @@ resource "helm_release" "envoy_gateway" {
   version   = "v1.2.5"
   namespace = "envoy-gateway-system"
 
-  create_namespace = true  # Let Helm manage the namespace
+  create_namespace = true # Let Helm manage the namespace
   wait             = true
   timeout          = 600
 

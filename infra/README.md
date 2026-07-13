@@ -1,6 +1,6 @@
 # First Deployment Infrastructure
 
-This directory contains Terraform configuration for deploying multi-cloud infrastructure with Humanitec Platform Orchestrator.
+This directory contains Terraform configuration for deploying multi-cloud infrastructure with Platform Orchestrator.
 
 ## Architecture
 
@@ -10,15 +10,15 @@ This infrastructure uses a **provider-per-module architecture** where each cloud
 
 ```
 ├── main.tf                   # Root module with cloud module calls
-├── humanitec.tf              # Shared Humanitec Platform Orchestrator resources
+├── platform-orchestrator.tf              # Shared Platform Orchestrator resources
 ├── variables.tf              # Input variables
 ├── outputs.tf                # Common outputs (prefix, org, project)
 ├── destroy-order.sh          # Safe destruction script with proper ordering
 └── modules/
     ├── local/                # Local KinD module (Kubernetes in Docker)
-    ├── gcp/                  # GCP module (GKE + Humanitec resources + environments)
-    ├── aws/                  # AWS module (EKS + Humanitec resources + environments)
-    ├── azure/                # Azure module (AKS + Humanitec resources + environments)
+    ├── gcp/                  # GCP module (GKE + Platform Orchestrator resources + environments)
+    ├── aws/                  # AWS module (EKS + Platform Orchestrator resources + environments)
+    ├── azure/                # Azure module (AKS + Platform Orchestrator resources + environments)
     └── shared/
         └── runner-integration/  # Shared runner deployment logic
 ```
@@ -69,8 +69,8 @@ module "local" {
 Set your variables via `terraform.tfvars` or environment variables:
 
 ```hcl
-humanitec_org        = "your-org"
-humanitec_auth_token = "your-token"
+orchestrator_org        = "your-org"
+orchestrator_auth_token = "your-token"
 prefix               = "demo"  # Optional, will generate random if empty
 
 # Cloud-specific variables (only needed for enabled clouds)
@@ -113,7 +113,7 @@ Use the safe destruction script:
 ./destroy-order.sh
 ```
 
-This script ensures proper ordering: environments → Humanitec resources → infrastructure.
+This script ensures proper ordering: environments → Platform Orchestrator resources → infrastructure.
 
 ## Key Features
 
@@ -166,9 +166,9 @@ Each cloud module (GCP, AWS, Azure) contains its own `providers.tf` with Kuberne
 - ✅ **Easy enabling** - Comment/uncomment modules without complex configuration
 - ✅ **Independent deployment** - Modules can be enabled/disabled independently
 
-### Shared Humanitec Resources
+### Shared Platform Orchestrator Resources
 
-Cloud-agnostic Humanitec resources (providers, resource types, modules) are defined in [humanitec.tf](humanitec.tf):
+Cloud-agnostic Platform Orchestrator resources (providers, resource types, modules) are defined in [platform-orchestrator.tf](platform-orchestrator.tf):
 - Kubernetes provider (cloud-agnostic)
 - Helm provider (cloud-agnostic) 
 - Ansible provider (for VM deployments)
@@ -177,9 +177,9 @@ Cloud-agnostic Humanitec resources (providers, resource types, modules) are defi
 - Score workload resource type and modules
 - Ansible score workload module (for VM-based deployments)
 
-### Cloud-Specific Humanitec Resources
+### Cloud-Specific Platform Orchestrator Resources
 
-Each cloud module defines its own Humanitec resources in `humanitec-resources.tf`:
+Each cloud module defines its own Platform Orchestrator resources in `platform-orchestrator-resources.tf`:
 - **GCP**: GCS buckets, Pub/Sub queues, GKE service accounts, VM fleets
 - **AWS**: VM fleets
 - **Azure**: VM fleets
@@ -218,8 +218,8 @@ Detailed documentation for each module:
 
 The [destroy-order.sh](destroy-order.sh) script ensures safe teardown:
 
-1. **Destroys environments first** - Prevents Humanitec API errors
-2. **Destroys Humanitec resources in order** - Module rules → Modules → Resource types
+1. **Destroys environments first** - Prevents Platform Orchestrator API errors
+2. **Destroys Platform Orchestrator resources in order** - Module rules → Modules → Resource types
 3. **Destroys remaining infrastructure** - Clusters, networks, etc.
 4. **Auto-retry logic** - Waits 10 seconds and retries if resources remain
 

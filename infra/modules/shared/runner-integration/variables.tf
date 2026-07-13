@@ -3,8 +3,8 @@ variable "prefix" {
   type        = string
 }
 
-variable "humanitec_org" {
-  description = "Humanitec organization ID"
+variable "orchestrator_org" {
+  description = "Platform Orchestrator organization ID"
   type        = string
 }
 
@@ -71,7 +71,7 @@ variable "gcp_service_account_secret_name" {
 }
 
 variable "public_key_pem" {
-  description = "Public key PEM for Humanitec API runner registration (ED25519)"
+  description = "Public key PEM for Platform Orchestrator API runner registration (ED25519)"
   type        = string
   sensitive   = true
 }

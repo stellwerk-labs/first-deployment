@@ -16,12 +16,12 @@ variable "gcp_zone" {
   default     = "us-central1-a"
 }
 
-variable "humanitec_org" {
-  description = "Humanitec organization name"
+variable "orchestrator_org" {
+  description = "Platform Orchestrator organization name"
 }
 
-variable "humanitec_auth_token" {
-  description = "Humanitec auth token"
+variable "orchestrator_auth_token" {
+  description = "Platform Orchestrator auth token"
 }
 
 variable "prefix" {

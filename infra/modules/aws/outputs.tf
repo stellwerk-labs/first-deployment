@@ -20,17 +20,17 @@ output "cluster_oidc_issuer_url" {
 }
 
 output "runner_role_arn" {
-  description = "Humanitec runner IAM role ARN"
-  value       = aws_iam_role.humanitec_runner.arn
+  description = "Platform Orchestrator runner IAM role ARN"
+  value       = aws_iam_role.platform_orchestrator_runner.arn
 }
 
 output "runner_id" {
-  description = "Humanitec runner ID"
+  description = "Platform Orchestrator runner ID"
   value       = module.runner.runner_id
 }
 
 output "runner_rule_id" {
-  description = "Humanitec runner rule ID"
+  description = "Platform Orchestrator runner rule ID"
   value       = module.runner.runner_rule_id
 }
 

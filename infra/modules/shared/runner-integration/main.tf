@@ -9,18 +9,18 @@ terraform {
       version = "~> 2.38.0"
     }
     platform-orchestrator = {
-      source  = "humanitec/platform-orchestrator"
-      version = ">= 2.9.1"
+      source  = "stellwerk-labs/platform-orchestrator"
+      version = "~> 1.0"
     }
   }
 }
 
-# Deploy Humanitec Kubernetes Agent Runner using Helm chart
-resource "helm_release" "humanitec_runner" {
-  name       = "${var.prefix}-humanitec-runner"
-  repository = "oci://ghcr.io/humanitec/charts"
-  chart      = "humanitec-kubernetes-agent-runner"
-  version    = "0.1.10"
+# Deploy Platform Orchestrator Kubernetes Agent Runner using Helm chart
+resource "helm_release" "platform_orchestrator_runner" {
+  name       = "${var.prefix}-platform-orchestrator-runner"
+  repository = "oci://ghcr.io/stellwerk-labs/charts"
+  chart      = "platform-orchestrator-kubernetes-agent-runner"
+  version    = "0.1.1"
 
   namespace        = var.runner_namespace
   create_namespace = false
@@ -30,8 +30,8 @@ resource "helm_release" "humanitec_runner" {
 
   values = [
     yamlencode({
-      humanitec = {
-        orgId    = var.humanitec_org
+      platformOrchestrator = {
+        orgId    = var.orchestrator_org
         runnerId = "${var.prefix}-first-deployment-agent-runner"
         logLevel = "debug"
       }
@@ -41,9 +41,9 @@ resource "helm_release" "humanitec_runner" {
       }
 
       jobsRbac = {
-        create               = true
+        create             = true
         serviceAccountName = var.runner_inner_service_account_name
-        namespace            = var.runner_namespace
+        namespace          = var.runner_namespace
       }
 
       serviceAccount = {
@@ -56,7 +56,7 @@ resource "helm_release" "humanitec_runner" {
   # Set the private key separately as a sensitive value
   set_sensitive = [
     {
-      name  = "humanitec.privateKey"
+      name  = "platformOrchestrator.privateKey"
       value = var.private_key_pem
     }
   ]
@@ -67,7 +67,7 @@ resource "helm_release" "humanitec_runner" {
 # ClusterRoleBinding for inner runner - ensure cluster-admin permissions
 resource "kubernetes_cluster_role_binding" "runner_inner_cluster_admin" {
   metadata {
-    name = "${var.prefix}-humanitec-runner-inner-cluster-admin"
+    name = "${var.prefix}-platform-orchestrator-runner-inner-cluster-admin"
   }
 
   role_ref {
@@ -82,7 +82,7 @@ resource "kubernetes_cluster_role_binding" "runner_inner_cluster_admin" {
     namespace = var.runner_namespace
   }
 
-  depends_on = [helm_release.humanitec_runner]
+  depends_on = [helm_release.platform_orchestrator_runner]
 }
 
 # AWS IRSA - Add annotations after Helm chart creation
@@ -100,7 +100,7 @@ resource "kubernetes_annotations" "aws_irsa_sa" {
     "eks.amazonaws.com/role-arn" = var.aws_iam_role_arn
   }
 
-  depends_on = [helm_release.humanitec_runner]
+  depends_on = [helm_release.platform_orchestrator_runner]
 }
 
 # Azure Workload Identity - Add annotations and labels after Helm chart creation
@@ -118,7 +118,7 @@ resource "kubernetes_annotations" "azure_workload_identity_sa" {
     "azure.workload.identity/client-id" = var.azure_client_id
   }
 
-  depends_on = [helm_release.humanitec_runner]
+  depends_on = [helm_release.platform_orchestrator_runner]
 }
 
 resource "kubernetes_labels" "azure_workload_identity_sa" {
@@ -135,7 +135,7 @@ resource "kubernetes_labels" "azure_workload_identity_sa" {
     "azure.workload.identity/use" = "true"
   }
 
-  depends_on = [helm_release.humanitec_runner]
+  depends_on = [helm_release.platform_orchestrator_runner]
 }
 
 # Build volume mounts based on cloud provider
@@ -218,8 +218,8 @@ resource "platform-orchestrator_kubernetes_agent_runner" "agent_runner" {
   runner_configuration = {
     key = var.public_key_pem
     job = {
-      namespace                   = var.runner_namespace
-      service_account             = var.runner_inner_service_account_name
+      namespace       = var.runner_namespace
+      service_account = var.runner_inner_service_account_name
       service_account_annotations = var.cloud_provider == "azure" && var.azure_client_id != null ? {
         "azure.workload.identity/client-id" = var.azure_client_id
       } : {}

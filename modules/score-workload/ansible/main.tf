@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     ansibleplay = {
-      source  = "humanitec/ansibleplay"
-    }  
+      source = "humanitec/ansibleplay"
+    }
   }
 }
 
@@ -29,29 +29,29 @@ variable "metadata" {
 
 variable "containers" {
   type = map(object({
-    image = string
-    command = optional(list(string))
-    args = optional(list(string))
+    image     = string
+    command   = optional(list(string))
+    args      = optional(list(string))
     variables = optional(map(string))
     files = optional(map(object({
-      source = optional(string)
-      content = optional(string)
+      source        = optional(string)
+      content       = optional(string)
       binaryContent = optional(string)
-      mode = optional(string)
+      mode          = optional(string)
     })))
     volumes = optional(map(object({
-      source = string
-      path = optional(string)
+      source   = string
+      path     = optional(string)
       readOnly = optional(bool)
     })))
     resources = optional(object({
       limits = optional(object({
         memory = optional(string)
-        cpu = optional(string)
+        cpu    = optional(string)
       }))
       requests = optional(object({
         memory = optional(string)
-        cpu = optional(string)
+        cpu    = optional(string)
       }))
     }))
   }))
@@ -61,8 +61,8 @@ variable "containers" {
 variable "service" {
   type = object({
     ports = optional(map(object({
-      port = number
-      protocol = optional(string)
+      port       = number
+      protocol   = optional(string)
       targetPort = optional(number)
     })))
   })
@@ -90,51 +90,51 @@ locals {
 }
 
 resource "local_file" "container_files" {
-  for_each = merge([for k, v in var.containers : { for p, f in coalesce(v.files, {}) : sha256(join(",", [k, p])) => f.content if f.content != null }]...)
+  for_each        = merge([for k, v in var.containers : { for p, f in coalesce(v.files, {}) : sha256(join(",", [k, p])) => f.content if f.content != null }]...)
   filename        = "/tmp/${each.key}"
   content         = each.value
   file_permission = "0600"
 }
 
 resource "local_file" "binary_container_files" {
-  for_each = merge([for k, v in var.containers : { for p, f in coalesce(v.files, {}) : sha256(join(",", [k, p])) => f.binaryContent if f.binaryContent != null }]...)
+  for_each        = merge([for k, v in var.containers : { for p, f in coalesce(v.files, {}) : sha256(join(",", [k, p])) => f.binaryContent if f.binaryContent != null }]...)
   filename        = "/tmp/${each.key}"
   content_base64  = each.value
   file_permission = "0600"
 }
 
 resource "ansibleplay_run" "setup" {
-  hosts = var.ips
-  playbook_file   = "${path.module}/playbook.yml"  # Path to your playbook file
+  hosts         = var.ips
+  playbook_file = "${path.module}/playbook.yml" # Path to your playbook file
   extra_vars_json = jsonencode({
-    ansible_user                = var.ssh_user
+    ansible_user                 = var.ssh_user
     ansible_ssh_private_key_file = local_file.ssh_key.filename
-    ansible_ssh_common_args     = "-o StrictHostKeyChecking=no"
+    ansible_ssh_common_args      = "-o StrictHostKeyChecking=no"
 
     project_name = var.metadata.name
     compose_content = jsonencode({
-      services = {for k, v in var.containers : k => merge({
-          image = v.image
-          entrypoint = v.command
-          command = v.args
-          environment = coalesce(v.variables, {})
-          volumes = [ for p, f in coalesce(v.files, {}) : ( f.source != null ? {
-            type = "bind"
-            source = f.source
-            target = p
-            read_only = coalesce(f.readOnly, false)
+      services = { for k, v in var.containers : k => merge({
+        image       = v.image
+        entrypoint  = v.command
+        command     = v.args
+        environment = coalesce(v.variables, {})
+        volumes = [for p, f in coalesce(v.files, {}) : (f.source != null ? {
+          type      = "bind"
+          source    = f.source
+          target    = p
+          read_only = coalesce(f.readOnly, false)
           } : {
-            type = "bind"
-            source = "/home/${var.ssh_user}/compose/${var.metadata.name}/files/${sha256(join(",", k, p))}"
-            target = p
-            read_only = coalesce(f.readOnly, false)
-          })]
-          ports = k == local.first_service_name ? [for n, v in try(var.service.ports, {}) : {
-            name = n
-            published = tostring(v.port)
-            target = coalesce(v.targetPort, v.port)
-            protocol = lower(coalesce(v.protocol, "tcp"))
-          }] : []
+          type      = "bind"
+          source    = "/home/${var.ssh_user}/compose/${var.metadata.name}/files/${sha256(join(",", k, p))}"
+          target    = p
+          read_only = coalesce(f.readOnly, false)
+        })]
+        ports = k == local.first_service_name ? [for n, v in try(var.service.ports, {}) : {
+          name      = n
+          published = tostring(v.port)
+          target    = coalesce(v.targetPort, v.port)
+          protocol  = lower(coalesce(v.protocol, "tcp"))
+        }] : []
         },
         k == local.first_service_name ? {} : {
           network_mode = "service:${local.first_service_name}"

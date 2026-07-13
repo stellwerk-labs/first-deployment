@@ -27,7 +27,7 @@ resource "google_container_cluster" "cluster" {
 # Service Account for Runner
 resource "google_service_account" "runner" {
   account_id   = "${var.prefix}-first-deployment-runner"
-  display_name = "Used by Humanitec Orchestrator to access GKE clusters for launching runners"
+  display_name = "Used by Platform Orchestrator Orchestrator to access GKE clusters for launching runners"
 }
 
 data "google_project" "project" {
@@ -38,7 +38,7 @@ data "google_project" "project" {
 resource "google_project_iam_custom_role" "runner" {
   role_id     = "${var.prefix}_first_deployment_runner_role"
   title       = "${var.prefix}_first_deployment_runner_role"
-  description = "Access for the Humanitec Orchestrator to GKE clusters for launching runners"
+  description = "Access for the Platform Orchestrator Orchestrator to GKE clusters for launching runners"
   project     = var.gcp_project_id
 
   permissions = [

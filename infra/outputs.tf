@@ -4,12 +4,12 @@ output "prefix" {
   value       = local.prefix
 }
 
-output "humanitec_org" {
-  description = "Humanitec organization ID"
-  value       = var.humanitec_org
+output "orchestrator_org" {
+  description = "Platform Orchestrator organization ID"
+  value       = var.orchestrator_org
 }
 
 output "project_id" {
-  description = "Humanitec project ID"
+  description = "Platform Orchestrator project ID"
   value       = platform-orchestrator_project.project.id
 }

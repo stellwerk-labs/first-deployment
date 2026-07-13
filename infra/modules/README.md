@@ -1,6 +1,6 @@
 # Infrastructure Modules
 
-This directory contains Terraform modules for deploying cloud infrastructure and Humanitec Platform Orchestrator integration.
+This directory contains Terraform modules for deploying cloud infrastructure and Platform Orchestrator integration.
 
 ## Architecture Overview
 
@@ -8,7 +8,7 @@ This infrastructure uses an **environments-per-cloud architecture**. Each cloud 
 - Its own Kubernetes cluster
 - Its own `providers.tf` with Kubernetes/Helm provider configurations
 - Its own environments (e.g., `aws-dev`, `gcp-dev`)
-- Its own Humanitec runner and resources
+- Its own Platform Orchestrator runner and resources
 
 This design enables true multi-cloud support where multiple clouds can be enabled simultaneously, and you choose the deployment target by environment name.
 
@@ -25,10 +25,10 @@ Google Cloud Platform infrastructure:
 - **IAM**: Service accounts and workload identity
 - **Namespace**: Runner namespace (`namespace.tf`)
 - **CloudNativePG**: Postgres operator (`cnpg.tf`)
-- **Runner**: Humanitec runner integration (`runner.tf`)
+- **Runner**: Platform Orchestrator runner integration (`runner.tf`)
 - **Providers**: GKE-specific Kubernetes/Helm providers (`providers.tf`)
 - **Environments**: `gcp-dev`, `gcp-score` (`environments.tf`)
-- **Humanitec Resources**: GCS buckets, Pub/Sub queues, k8s service accounts, VM fleets (`humanitec-resources.tf`)
+- **Platform Orchestrator Resources**: GCS buckets, Pub/Sub queues, k8s service accounts, VM fleets (`platform-orchestrator-resources.tf`)
 
 #### [aws/](aws/)
 Amazon Web Services infrastructure:
@@ -37,10 +37,10 @@ Amazon Web Services infrastructure:
 - **IAM**: Roles, policies, OIDC provider, IRSA
 - **Namespace**: Runner namespace (`namespace.tf`)
 - **CloudNativePG**: Postgres operator (`cnpg.tf`)
-- **Runner**: Humanitec runner integration (`runner.tf`)
+- **Runner**: Platform Orchestrator runner integration (`runner.tf`)
 - **Providers**: EKS-specific Kubernetes/Helm providers (`providers.tf`)
 - **Environments**: `aws-dev`, `aws-score` (`environments.tf`)
-- **Humanitec Resources**: VM fleets (`humanitec-resources.tf`)
+- **Platform Orchestrator Resources**: VM fleets (`platform-orchestrator-resources.tf`)
 
 #### [azure/](azure/)
 Microsoft Azure infrastructure:
@@ -49,16 +49,16 @@ Microsoft Azure infrastructure:
 - **IAM**: Managed identities, federated credentials
 - **Namespace**: Runner namespace (`namespace.tf`)
 - **CloudNativePG**: Postgres operator (`cnpg.tf`)
-- **Runner**: Humanitec runner integration (`runner.tf`)
+- **Runner**: Platform Orchestrator runner integration (`runner.tf`)
 - **Providers**: AKS-specific Kubernetes/Helm providers (`providers.tf`)
 - **Environments**: `azure-dev`, `azure-score` (`environments.tf`)
-- **Humanitec Resources**: VM fleets (`humanitec-resources.tf`)
+- **Platform Orchestrator Resources**: VM fleets (`platform-orchestrator-resources.tf`)
 
 ### Shared Modules
 
 #### [shared/runner-integration/](shared/runner-integration/)
-Reusable module for deploying Humanitec Kubernetes Agent Runner:
-- Helm chart deployment (ghcr.io/humanitec/charts/humanitec-agent)
+Reusable module for deploying Platform Orchestrator Kubernetes Agent Runner:
+- Helm chart deployment (`ghcr.io/stellwerk-labs/charts/platform-orchestrator-kubernetes-agent-runner`)
 - Platform Orchestrator runner registration
 - Kubernetes RBAC setup (ServiceAccount, ClusterRoleBinding)
 - Cloud-agnostic - accepts cloud-specific configuration as variables
@@ -77,7 +77,7 @@ modules/gcp/  (or aws/ or azure/)
 ├── cnpg.tf                    # CloudNativePG operator deployment
 ├── runner.tf                  # Runner integration (calls shared module)
 ├── environments.tf            # Cloud-specific environments (NEW!)
-├── humanitec-resources.tf     # Cloud-specific Humanitec resources
+├── platform-orchestrator-resources.tf     # Cloud-specific Platform Orchestrator resources
 ├── variables.tf               # Module inputs
 ├── outputs.tf                 # Module outputs
 └── versions.tf                # Provider version requirements
@@ -97,7 +97,7 @@ Each module is completely isolated:
 - Network
 - Runner
 - **Environments** ← Key addition
-- Cloud-specific Humanitec resources
+- Cloud-specific Platform Orchestrator resources
 
 ### 4. No Cross-Dependencies
 Cloud modules are independent of each other. You can enable AWS without having GCP or Azure code present.
@@ -114,12 +114,12 @@ Each cloud module accepts similar inputs:
 
 **Common Variables:**
 - `prefix` - Resource name prefix (string)
-- `humanitec_org` - Humanitec organization ID (string)
-- `humanitec_auth_token` - Humanitec API token (string, sensitive)
+- `orchestrator_org` - Platform Orchestrator organization ID (string)
+- `orchestrator_auth_token` - Platform Orchestrator API token (string, sensitive)
 - `public_key_pem` - TLS public key for runner auth (string)
 - `private_key_pem` - TLS private key for runner auth (string, sensitive)
-- `project_id` - Humanitec project ID (string) ← **NEW**
-- `env_type_id` - Humanitec environment type ID (string) ← **NEW**
+- `project_id` - Platform Orchestrator project ID (string) ← **NEW**
+- `env_type_id` - Platform Orchestrator environment type ID (string) ← **NEW**
 
 **Cloud-Specific Variables:**
 - **GCP**: `gcp_project_id`, `gcp_region`, `gcp_zone`
@@ -135,7 +135,7 @@ Each cloud module provides outputs:
 **Common Outputs:**
 - `cluster_name` - Cluster name
 - `cluster_endpoint` - Cluster API endpoint (sensitive)
-- `runner_id` - Humanitec runner ID
+- `runner_id` - Platform Orchestrator runner ID
 
 **Cloud-Specific Outputs:**
 - **GCP**: `service_account_email`, `network_name`
@@ -155,8 +155,8 @@ module "aws" {
   
   prefix               = local.prefix
   aws_region           = var.aws_region
-  humanitec_org        = var.humanitec_org
-  humanitec_auth_token = var.humanitec_auth_token
+  orchestrator_org        = var.orchestrator_org
+  orchestrator_auth_token = var.orchestrator_auth_token
   public_key_pem       = tls_private_key.agent_runner_key.public_key_pem
   private_key_pem      = tls_private_key.agent_runner_key.private_key_pem
   project_id           = platform-orchestrator_project.project.id
@@ -179,14 +179,14 @@ Each cloud module internally has these dependencies:
 3. CloudNativePG is deployed (depends on cluster and namespace)
 4. Runner is deployed (depends on cluster, namespace, CloudNativePG)
 5. Environments are created (depends on runner) ← **NEW**
-6. Humanitec resources reference the cluster and runner
+6. Platform Orchestrator resources reference the cluster and runner
 
 Terraform handles this automatically through resource dependencies.
 
 ### External Dependencies
-- **Humanitec Platform Orchestrator API** - For registering runners and resources
-- **GitHub repositories** - Module sources (e.g., `git::https://github.com/humanitec-tutorials/first-deployment//modules/...`)
-- **Helm charts** - Runner chart from `ghcr.io/humanitec/charts`
+- **Platform Orchestrator API** - For registering runners and resources
+- **GitHub repositories** - Module sources (e.g., `git::https://github.com/stellwerk-labs/first-deployment//modules/...`)
+- **Helm charts** - Runner chart from `ghcr.io/stellwerk-labs/charts`
 - **CloudNativePG Helm chart** - From `https://cloudnative-pg.github.io/charts`
 
 ## Environment Naming
@@ -236,7 +236,7 @@ To add a new cloud provider (e.g., DigitalOcean):
    ```hcl
    resource "kubernetes_namespace" "runner" {
      metadata {
-       name = "${var.prefix}-humanitec-runner"
+       name = "${var.prefix}-platform-orchestrator-runner"
      }
    }
    ```
@@ -278,7 +278,7 @@ To add a new cloud provider (e.g., DigitalOcean):
    }
    ```
 
-8. **Add Humanitec resources** (`humanitec-resources.tf`):
+8. **Add Platform Orchestrator resources** (`platform-orchestrator-resources.tf`):
    Define any cloud-specific resource types and modules
 
 9. **Add variables and outputs** (`variables.tf`, `outputs.tf`):
@@ -298,7 +298,7 @@ To add a new cloud provider (e.g., DigitalOcean):
 
 ## Modifying Shared Runner Logic
 
-To change how the Humanitec runner is deployed across all clouds:
+To change how the Platform Orchestrator runner is deployed across all clouds:
 
 Edit [shared/runner-integration/main.tf](shared/runner-integration/main.tf). Changes will automatically apply to all cloud providers that call this module.
 

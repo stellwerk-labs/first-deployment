@@ -22,6 +22,23 @@ variable "orchestrator_org" {
 
 variable "orchestrator_auth_token" {
   description = "Platform Orchestrator auth token"
+  type        = string
+  sensitive   = true
+}
+
+variable "orchestrator_api_url" {
+  description = "Public HTTPS API URL of the existing Orchestrator installation"
+  type        = string
+  validation {
+    condition     = can(regex("^https://[^/]+/?$", var.orchestrator_api_url))
+    error_message = "Supply the installation's HTTPS API origin, without a path."
+  }
+}
+
+variable "orchestrator_ca_pem" {
+  description = "Optional PEM CA for a private installation certificate; empty uses system trust"
+  type        = string
+  default     = ""
 }
 
 variable "prefix" {

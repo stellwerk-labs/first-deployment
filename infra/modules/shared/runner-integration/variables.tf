@@ -8,6 +8,17 @@ variable "orchestrator_org" {
   type        = string
 }
 
+variable "orchestrator_api_url" {
+  description = "Public HTTPS API origin reachable from the Runner and its Jobs"
+  type        = string
+}
+
+variable "orchestrator_ca_pem" {
+  description = "Optional PEM CA for the installation's HTTPS certificate"
+  type        = string
+  default     = ""
+}
+
 variable "runner_namespace" {
   description = "Kubernetes namespace for the runner"
   type        = string

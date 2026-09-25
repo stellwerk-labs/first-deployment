@@ -8,8 +8,12 @@
 # Your Platform Orchestrator organization ID
 orchestrator_org = "your-org-id"
 
-# Your Platform Orchestrator service-user API token
-orchestrator_auth_token = "your-api-token-here"
+# Existing installation's HTTPS API origin, reachable from the Runner
+orchestrator_api_url = "https://api.example.test"
+
+# Supply the service-user token with TF_VAR_orchestrator_auth_token.
+# Do not commit credentials. Optional private CA public PEM:
+# orchestrator_ca_pem = "..."
 
 # =============================================================================
 # AWS Configuration (OPTIONAL - only needed if AWS is in enabled_cloud_providers)

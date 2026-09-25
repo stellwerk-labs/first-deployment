@@ -2,11 +2,12 @@
 provider "platform-orchestrator" {
   org_id     = var.orchestrator_org
   auth_token = var.orchestrator_auth_token
-  api_url    = "https://api.stellwerk.localhost"
+  api_url    = var.orchestrator_api_url
 }
 
 # Shared Kubernetes Provider (cloud-agnostic)
 resource "platform-orchestrator_provider" "k8s" {
+  deletion_policy    = "retain"
   id                 = "default"
   description        = "Provider using default runner environment variables for Kubernetes"
   provider_type      = "kubernetes"
@@ -17,6 +18,7 @@ resource "platform-orchestrator_provider" "k8s" {
 
 # Shared Helm Provider (cloud-agnostic)
 resource "platform-orchestrator_provider" "helm" {
+  deletion_policy    = "retain"
   id                 = "default"
   description        = "Provider using default runner environment variables for Helm"
   provider_type      = "helm"
@@ -27,6 +29,7 @@ resource "platform-orchestrator_provider" "helm" {
 
 # Shared Ansible Provider (cloud-agnostic)
 resource "platform-orchestrator_provider" "ansibleplay" {
+  deletion_policy    = "retain"
   id                 = "default"
   description        = "Platform Orchestrator provider for Ansible playbooks"
   provider_type      = "ansibleplay"
@@ -37,8 +40,9 @@ resource "platform-orchestrator_provider" "ansibleplay" {
 
 # Shared Resource Type: K8s Namespace (cloud-agnostic)
 resource "platform-orchestrator_resource_type" "k8s_namespace" {
-  id          = "k8s-namespace"
-  description = "A Kubernetes namespace"
+  deletion_policy = "retain"
+  id              = "k8s-namespace"
+  description     = "A Kubernetes namespace"
   output_schema = jsonencode({
     type = "object"
     properties = {
@@ -51,24 +55,45 @@ resource "platform-orchestrator_resource_type" "k8s_namespace" {
   depends_on              = [platform-orchestrator_provider.k8s]
 }
 
-resource "platform-orchestrator_module" "k8s_namespace" {
+resource "platform-orchestrator_module_catalogue_entry" "k8s_namespace" {
   id            = "k8s-namespace"
-  description   = "Module for a Kubernetes namespace"
   resource_type = platform-orchestrator_resource_type.k8s_namespace.id
-  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/k8s-namespace"
-  provider_mapping = {
-    kubernetes = "kubernetes.default"
-  }
+  description   = "Module for a Kubernetes namespace"
+}
+
+resource "platform-orchestrator_module_version" "k8s_namespace" {
+  module_id         = platform-orchestrator_module_catalogue_entry.k8s_namespace.id
+  semantic_version  = "1.0.0"
+  lifecycle_status  = "default"
+  transition_reason = "Make the tutorial baseline available for first deployment"
+  definition = jsonencode({
+    module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/k8s-namespace?ref=4b17d97474a6cdb51d4da1b42dd041f6d4e03aee"
+    output_schema = {
+      type       = "object"
+      properties = { namespace = { type = "string" } }
+    }
+    module_params = {}
+    module_inputs = {}
+    provider_mapping = {
+      kubernetes = "kubernetes.default"
+    }
+    dependencies    = {}
+    coprovisioned   = []
+    source_revision = "4b17d97474a6cdb51d4da1b42dd041f6d4e03aee"
+  })
+  depends_on = [platform-orchestrator_provider.k8s, platform-orchestrator_provider.helm, platform-orchestrator_provider.ansibleplay]
 }
 
 resource "platform-orchestrator_module_rule" "k8s_namespace" {
-  module_id = platform-orchestrator_module.k8s_namespace.id
+  module_id  = platform-orchestrator_module_catalogue_entry.k8s_namespace.id
+  depends_on = [platform-orchestrator_module_version.k8s_namespace]
 }
 
 # Shared Resource Type: In-Cluster Postgres (cloud-agnostic)
 resource "platform-orchestrator_resource_type" "in_cluster_postgres" {
-  id          = "postgres"
-  description = "An in-cluster Postgres database using CloudNativePG"
+  deletion_policy = "retain"
+  id              = "postgres"
+  description     = "An in-cluster Postgres database using CloudNativePG"
   output_schema = jsonencode({
     type = "object"
     properties = {
@@ -93,36 +118,59 @@ resource "platform-orchestrator_resource_type" "in_cluster_postgres" {
   depends_on              = [platform-orchestrator_provider.k8s]
 }
 
-resource "platform-orchestrator_module" "in_cluster_postgres" {
+resource "platform-orchestrator_module_catalogue_entry" "in_cluster_postgres" {
   id            = "in-cluster-postgres"
   resource_type = platform-orchestrator_resource_type.in_cluster_postgres.id
-  provider_mapping = {
-    kubernetes = "kubernetes.default"
-  }
-  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/postgres"
-  module_inputs = jsonencode({
-    namespace = "$${resources.namespace.outputs.namespace}"
-  })
-  dependencies = {
-    namespace = {
-      type = platform-orchestrator_resource_type.k8s_namespace.id
-      id   = "main"
-    }
-  }
+}
 
+resource "platform-orchestrator_module_version" "in_cluster_postgres" {
+  module_id         = platform-orchestrator_module_catalogue_entry.in_cluster_postgres.id
+  semantic_version  = "1.0.0"
+  lifecycle_status  = "default"
+  transition_reason = "Make the tutorial baseline available for first deployment"
+  definition = jsonencode({
+    module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/postgres?ref=4b17d97474a6cdb51d4da1b42dd041f6d4e03aee"
+    output_schema = {
+      type = "object"
+      properties = {
+        hostname = { type = "string" }
+        port     = { type = "integer" }
+        database = { type = "string" }
+        username = { type = "string" }
+        password = { type = "string" }
+      }
+    }
+    module_params = {}
+    module_inputs = {
+      namespace = "$${resources.namespace.outputs.namespace}"
+    }
+    provider_mapping = {
+      kubernetes = "kubernetes.default"
+    }
+    dependencies = {
+      namespace = {
+        type = platform-orchestrator_resource_type.k8s_namespace.id
+        id   = "main"
+      }
+    }
+    coprovisioned   = []
+    source_revision = "4b17d97474a6cdb51d4da1b42dd041f6d4e03aee"
+  })
   depends_on = [
     platform-orchestrator_provider.k8s
   ]
 }
 
 resource "platform-orchestrator_module_rule" "in_cluster_postgres" {
-  module_id = platform-orchestrator_module.in_cluster_postgres.id
+  module_id  = platform-orchestrator_module_catalogue_entry.in_cluster_postgres.id
+  depends_on = [platform-orchestrator_module_version.in_cluster_postgres]
 }
 
 # Shared Resource Type: Score Workload
 resource "platform-orchestrator_resource_type" "score_workload" {
-  id          = "score-workload"
-  description = "A workload that deploys a Score file"
+  deletion_policy = "retain"
+  id              = "score-workload"
+  description     = "A workload that deploys a Score file"
   output_schema = jsonencode({
     type = "object"
     properties = {
@@ -136,47 +184,65 @@ resource "platform-orchestrator_resource_type" "score_workload" {
 }
 
 # Score Workload Module for Kubernetes
-resource "platform-orchestrator_module" "score_k8s" {
+resource "platform-orchestrator_module_catalogue_entry" "score_k8s" {
   id            = "score-k8s"
   resource_type = platform-orchestrator_resource_type.score_workload.id
-  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/score-workload/kubernetes"
-  module_params = {
-    metadata = {
-      type        = "map"
-      description = "The metadata component of the Score workload"
+}
+
+resource "platform-orchestrator_module_version" "score_k8s" {
+  module_id         = platform-orchestrator_module_catalogue_entry.score_k8s.id
+  semantic_version  = "1.0.0"
+  lifecycle_status  = "default"
+  transition_reason = "Make the tutorial baseline available for first deployment"
+  definition = jsonencode({
+    module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/score-workload/kubernetes?ref=4b17d97474a6cdb51d4da1b42dd041f6d4e03aee"
+    output_schema = {
+      type       = "object"
+      properties = { loadbalancer = { type = "string" } }
     }
-    containers = {
-      type        = "map"
-      description = "The containers component of the Score workload"
+    module_params = {
+      metadata = {
+        type        = "map"
+        description = "The metadata component of the Score workload"
+      }
+      containers = {
+        type        = "map"
+        description = "The containers component of the Score workload"
+      }
+      service = {
+        type        = "map"
+        is_optional = true
+        description = "The service component of the Score workload"
+      }
     }
-    service = {
-      type        = "map"
-      is_optional = true
-      description = "The service component of the Score workload"
+    module_inputs = {
+      namespace = "$${resources.ns.outputs.namespace}"
     }
-  }
-  provider_mapping = {
-    kubernetes = "kubernetes.default"
-  }
-  module_inputs = jsonencode({
-    namespace = "$${resources.ns.outputs.namespace}"
+    provider_mapping = {
+      kubernetes = "kubernetes.default"
+    }
+    dependencies = {
+      ns = {
+        type = platform-orchestrator_resource_type.k8s_namespace.id
+        id   = "main"
+      }
+    }
+    coprovisioned   = []
+    source_revision = "4b17d97474a6cdb51d4da1b42dd041f6d4e03aee"
   })
-  dependencies = {
-    ns = {
-      type = platform-orchestrator_resource_type.k8s_namespace.id
-      id   = "main"
-    }
-  }
+  depends_on = [platform-orchestrator_provider.k8s, platform-orchestrator_provider.helm, platform-orchestrator_provider.ansibleplay]
 }
 
 resource "platform-orchestrator_module_rule" "score_k8s" {
-  module_id = platform-orchestrator_module.score_k8s.id
+  module_id  = platform-orchestrator_module_catalogue_entry.score_k8s.id
+  depends_on = [platform-orchestrator_module_version.score_k8s]
 }
 
 # VM Fleet Resource Type
 resource "platform-orchestrator_resource_type" "vm_fleet" {
-  id          = "vm-fleet"
-  description = "A fleet of virtual machines"
+  deletion_policy = "retain"
+  id              = "vm-fleet"
+  description     = "A fleet of virtual machines"
   output_schema = jsonencode({
     type = "object"
     properties = {
@@ -201,39 +267,55 @@ resource "platform-orchestrator_resource_type" "vm_fleet" {
 }
 
 # Ansible Score Workload Module (for VM-based deployments)
-resource "platform-orchestrator_module" "ansible_score_workload" {
+resource "platform-orchestrator_module_catalogue_entry" "ansible_score_workload" {
   id            = "ansible-score-workload"
   resource_type = platform-orchestrator_resource_type.score_workload.id
-  provider_mapping = {
-    ansibleplay = "ansibleplay.default"
-  }
-  dependencies = {
-    fleet = {
-      type = platform-orchestrator_resource_type.vm_fleet.id
+}
+
+resource "platform-orchestrator_module_version" "ansible_score_workload" {
+  module_id         = platform-orchestrator_module_catalogue_entry.ansible_score_workload.id
+  semantic_version  = "1.0.0"
+  lifecycle_status  = "default"
+  transition_reason = "Make the tutorial baseline available for first deployment"
+  definition = jsonencode({
+    module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/score-workload/ansible?ref=4b17d97474a6cdb51d4da1b42dd041f6d4e03aee"
+    output_schema = {
+      type       = "object"
+      properties = { loadbalancer = { type = "string" } }
     }
-  }
-  module_params = {
-    metadata = {
-      type        = "map"
-      description = "The metadata component of the Score workload"
+    module_params = {
+      metadata = {
+        type        = "map"
+        description = "The metadata component of the Score workload"
+      }
+      containers = {
+        type        = "map"
+        description = "The containers component of the Score workload"
+      }
+      service = {
+        type        = "map"
+        is_optional = true
+        description = "The service component of the Score workload"
+      }
     }
-    containers = {
-      type        = "map"
-      description = "The containers component of the Score workload"
+    module_inputs = {
+      ips             = "$${resources.fleet.outputs.instance_ips}"
+      loadbalancer    = "$${resources.fleet.outputs.loadbalancer_ip}"
+      ssh_user        = "$${resources.fleet.outputs.ssh_username}"
+      ssh_private_key = "$${resources.fleet.outputs.ssh_private_key}"
     }
-    service = {
-      type        = "map"
-      is_optional = true
-      description = "The service component of the Score workload"
+    provider_mapping = {
+      ansibleplay = "ansibleplay.default"
     }
-  }
-  module_inputs = jsonencode({
-    ips             = "$${resources.fleet.outputs.instance_ips}"
-    loadbalancer    = "$${resources.fleet.outputs.loadbalancer_ip}"
-    ssh_user        = "$${resources.fleet.outputs.ssh_username}"
-    ssh_private_key = "$${resources.fleet.outputs.ssh_private_key}"
+    dependencies = {
+      fleet = {
+        type = platform-orchestrator_resource_type.vm_fleet.id
+      }
+    }
+    coprovisioned   = []
+    source_revision = "4b17d97474a6cdb51d4da1b42dd041f6d4e03aee"
   })
-  module_source = "git::https://github.com/stellwerk-labs/first-deployment//modules/score-workload/ansible"
+  depends_on = [platform-orchestrator_provider.k8s, platform-orchestrator_provider.helm, platform-orchestrator_provider.ansibleplay]
 }
 
 # Environment Type
@@ -248,6 +330,7 @@ resource "platform-orchestrator_project" "project" {
 }
 
 resource "platform-orchestrator_resource_type" "route_type" {
+  deletion_policy         = "retain"
   id                      = "route"
   description             = "HTTP route resource type"
   is_developer_accessible = "true"
@@ -257,41 +340,57 @@ resource "platform-orchestrator_resource_type" "route_type" {
   })
 }
 
-resource "platform-orchestrator_module" "route" {
+resource "platform-orchestrator_module_catalogue_entry" "route" {
   id            = "http-route"
   resource_type = platform-orchestrator_resource_type.route_type.id
-  module_source = "git::https://github.com/stellwerk-tf-modules/route-kubernetes-http-route"
-  depends_on    = [platform-orchestrator_provider.k8s]
-  provider_mapping = {
-    kubernetes = "kubernetes.default"
-  }
-  dependencies = {
-    ns = {
-      type = platform-orchestrator_resource_type.k8s_namespace.id
-      id   = "main"
+}
+
+resource "platform-orchestrator_module_version" "route" {
+  module_id         = platform-orchestrator_module_catalogue_entry.route.id
+  semantic_version  = "1.0.0"
+  lifecycle_status  = "default"
+  transition_reason = "Make the tutorial baseline available for first deployment"
+  definition = jsonencode({
+    module_source = "git::https://github.com/stellwerk-tf-modules/route-kubernetes-http-route?ref=907cf91be19c90be7633d74a08452eea486a6268"
+    output_schema = {
+      type       = "object"
+      properties = {}
     }
-  }
-  module_inputs = jsonencode({
-    namespace         = "$${resources.ns.outputs.namespace}"
-    gateways          = ["default-gateway"]
-    gateway_namespace = "envoy-gateway-system"
+    module_params = {
+      hostname = {
+        type = "string"
+      }
+      path = {
+        type = "string"
+      }
+      service = {
+        type = "string"
+      }
+      service_port = {
+        type = "number"
+      }
+    }
+    module_inputs = {
+      namespace         = "$${resources.ns.outputs.namespace}"
+      gateways          = ["default-gateway"]
+      gateway_namespace = "envoy-gateway-system"
+    }
+    provider_mapping = {
+      kubernetes = "kubernetes.default"
+    }
+    dependencies = {
+      ns = {
+        type = platform-orchestrator_resource_type.k8s_namespace.id
+        id   = "main"
+      }
+    }
+    coprovisioned   = []
+    source_revision = "907cf91be19c90be7633d74a08452eea486a6268"
   })
-  module_params = {
-    hostname = {
-      type = "string"
-    }
-    path = {
-      type = "string"
-    }
-    service = {
-      type = "string"
-    }
-    service_port = {
-      type = "number"
-    }
-  }
+  depends_on = [platform-orchestrator_provider.k8s]
 }
 
 resource "platform-orchestrator_module_rule" "route_module_rule" {
-  module_id = platform-orchestrator_module.route.id
+  module_id  = platform-orchestrator_module_catalogue_entry.route.id
+  depends_on = [platform-orchestrator_module_version.route]
 }

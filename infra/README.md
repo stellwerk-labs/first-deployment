@@ -2,6 +2,15 @@
 
 This directory contains Terraform configuration for deploying multi-cloud infrastructure with Platform Orchestrator.
 
+Use Orchestrator chart **0.7.0** with CLI **2.0.0** and Terraform/OpenTofu provider
+**2.0.0**. The chart coordinates CP 3.0.0, DP 3.2.0, IAM 2.4.0, Runner 3.1.0
+and Console 1.3.0. The local
+Kubernetes workflow has passed setup, deployment, teardown, retained import,
+no-op plan, redeployment and final teardown checks. Cloud variants have had
+static checks only. Read
+[Module Management migration](MODULE-MANAGEMENT.md) before using it with an
+existing state or installation.
+
 ## Architecture
 
 This infrastructure uses a **provider-per-module architecture** where each cloud module contains its own Kubernetes and Helm provider configurations, as well as its own environments. This allows true multi-cloud support where you can enable multiple clouds simultaneously and choose deployment targets by environment name.
@@ -29,7 +38,7 @@ This infrastructure uses a **provider-per-module architecture** where each cloud
 
 Edit [main.tf](main.tf) to enable your desired environment(s):
 
-#### Local Development (Enabled by Default)
+#### Local development (opt in)
 ```hcl
 # Local KinD - Perfect for development without cloud costs
 module "local" {
@@ -41,7 +50,10 @@ module "local" {
 **Access**: `http://*.localtest.me` (auto-resolves to 127.0.0.1)
 **See**: [modules/local/README.md](modules/local/README.md)
 
-#### Cloud Environments (Comment/Uncomment as Needed)
+All target module blocks are initially commented out. Enable at least one so
+the root configuration creates both the catalogue and a deployment target.
+
+#### Cloud environments
 ```hcl
 # Enable GCP
 # module "gcp" {
@@ -70,7 +82,7 @@ Set your variables via `terraform.tfvars` or environment variables:
 
 ```hcl
 orchestrator_org        = "your-org"
-orchestrator_auth_token = "your-token"
+orchestrator_api_url    = "https://api.example.test"
 prefix               = "demo"  # Optional, will generate random if empty
 
 # Cloud-specific variables (only needed for enabled clouds)
@@ -78,6 +90,13 @@ aws_region = "us-east-1"       # If using AWS
 gcp_project_id = "my-project"  # If using GCP
 azure_subscription_id = "..."  # If using Azure
 ```
+
+Supply the service-user token through `TF_VAR_orchestrator_auth_token`, not a
+committed file. For a private certificate authority, supply its public PEM in
+`orchestrator_ca_pem` and trust it on the machine running Terraform/OpenTofu.
+The agent connects outbound to this API's `/runner-gateway`; `localhost` inside
+the cluster is not the Orchestrator. Private Runner images additionally require
+an image-pull Secret and a matching Runner job pod template.
 
 ### 3. Deploy
 
@@ -99,10 +118,10 @@ Deploy locally by targeting `{prefix}-local-dev`, or to cloud by targeting cloud
 
 ```bash
 # Deploy locally
-octl deploy myapp {prefix}-local-dev ./score.yaml
+octl score deploy {prefix}-tutorial {prefix}-local-dev ./score.yaml
 
 # Deploy to cloud
-octl deploy myapp gcp-dev ./score.yaml
+octl score deploy {prefix}-tutorial gcp-dev ./score.yaml
 ```
 
 ### 5. Destroy
@@ -113,7 +132,8 @@ Use the safe destruction script:
 ./destroy-order.sh
 ```
 
-This script ensures proper ordering: environments → Platform Orchestrator resources → infrastructure.
+This script destroys environments first, then Platform Orchestrator resources,
+then the remaining infrastructure.
 
 ## Key Features
 
@@ -155,7 +175,8 @@ Each cloud module creates its own environments (e.g., `aws-dev`, `gcp-dev`). Thi
 - ✅ **Natural dependencies** - Environments depend on runners in same module
 - ✅ **True multi-cloud** - Enable all three clouds simultaneously
 - ✅ **Choose cloud by environment** - Deploy to `aws-dev` vs `gcp-dev` to pick cloud
-- ✅ **No dependency races** - First apply always works
+- Explicit dependencies connect each Environment to its Runner. Review the plan
+  and wait for the cluster and agent before the first Deployment.
 - ✅ **Isolated deployments** - Each cloud's environments use that cloud's runner
 
 ### Provider-per-Module Architecture
@@ -218,10 +239,17 @@ Detailed documentation for each module:
 
 The [destroy-order.sh](destroy-order.sh) script ensures safe teardown:
 
-1. **Destroys environments first** - Prevents Platform Orchestrator API errors
-2. **Destroys Platform Orchestrator resources in order** - Module rules → Modules → Resource types
-3. **Destroys remaining infrastructure** - Clusters, networks, etc.
-4. **Auto-retry logic** - Waits 10 seconds and retries if resources remain
+1. Destroy environments first to avoid Platform Orchestrator API errors.
+2. Destroy Platform Orchestrator resources in order: Module rules, Version state
+   references, then catalogue entries.
+3. Destroy the remaining infrastructure, including clusters and networks.
+4. Stop on an incomplete phase. Fix the reported failure and rerun; subsequent
+   runs select only resource addresses still in this state.
+
+Published versions and history remain in Stellwerk. Catalogue entries with
+history are archived. Referenced Provider and Resource Type records are retained
+explicitly. The script does not claim an empty catalogue or remove an externally
+created Service User. See [retention and a later setup](MODULE-MANAGEMENT.md).
 
 ## Environment Naming Convention
 

@@ -63,3 +63,13 @@ variable "vm_fleet_resource_type_id" {
   description = "VM Fleet resource type ID (from root module)"
   type        = string
 }
+variable "orchestrator_api_url" {
+  description = "Public HTTPS API origin of the existing Orchestrator"
+  type        = string
+}
+
+variable "orchestrator_ca_pem" {
+  description = "Optional PEM CA for the installation HTTPS certificate"
+  type        = string
+  default     = ""
+}

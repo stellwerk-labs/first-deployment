@@ -7,7 +7,7 @@ This module provides a local Kubernetes development environment using [KinD (Kub
 - **Zero Cloud Costs** - Runs entirely on your local machine
 - **Fast Iteration** - Instant feedback without cloud API delays
 - **Easy DNS** - Uses localtest.me (automatically resolves to 127.0.0.1)
-- **Ingress Ready** - NGINX Ingress Controller pre-configured
+- **Gateway Ready** - Envoy Gateway and Gateway API configured
 - **CloudNativePG** - In-cluster PostgreSQL support
 - **Platform Orchestrator Integration** - Full Platform Orchestrator support
 
@@ -46,11 +46,14 @@ Before using this module, ensure you have:
 
 ### 1. Enable the Local Module
 
-The local module is enabled by default in [main.tf](../../main.tf):
+Uncomment the local module in [main.tf](../../main.tf), including its API URL
+and optional CA inputs. All infrastructure targets are disabled initially:
 
 ```hcl
 module "local" {
   source = "./modules/local"
+  orchestrator_api_url = var.orchestrator_api_url
+  orchestrator_ca_pem  = var.orchestrator_ca_pem
 
   prefix               = local.prefix
   cluster_name         = var.local_cluster_name
@@ -75,7 +78,7 @@ Create or edit `terraform.tfvars`:
 ```hcl
 # Required
 orchestrator_org        = "your-org-id"
-orchestrator_auth_token = "your-token"
+orchestrator_api_url    = "https://api.example.test"
 
 # Optional - customize if needed
 prefix                  = "dev"                        # Default: random 4 chars
@@ -84,6 +87,10 @@ local_base_domain       = "localtest.me"               # Default
 local_ingress_http_port = 80                           # Default
 local_ingress_https_port = 443                         # Default
 ```
+
+Supply `TF_VAR_orchestrator_auth_token` separately. The API must be reachable
+from both your host and KinD pods. Use `orchestrator_ca_pem` for a private CA;
+this contains a public trust certificate, not its private key.
 
 ### 3. Deploy
 
@@ -96,7 +103,7 @@ terraform apply
 
 This will:
 1. Create a KinD cluster
-2. Install NGINX Ingress Controller
+2. Install Envoy Gateway and Gateway API resources
 3. Install CloudNativePG operator
 4. Deploy Platform Orchestrator runner
 5. Create `{prefix}-local-dev` environment
@@ -105,7 +112,7 @@ This will:
 
 ```bash
 # Deploy using octl
-octl deploy {prefix}-tutorial {prefix}-local-dev ./score.yaml
+octl score deploy {prefix}-tutorial {prefix}-local-dev ./score.yaml
 
 # Or deploy a manifest
 octl deploy {prefix}-tutorial {prefix}-local-dev ./manifest.yaml

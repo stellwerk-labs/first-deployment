@@ -18,7 +18,7 @@ terraform {
     }
     platform-orchestrator = {
       source  = "stellwerk-labs/platform-orchestrator"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
     http = {
       source  = "hashicorp/http"

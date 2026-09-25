@@ -10,17 +10,34 @@ terraform {
     }
     platform-orchestrator = {
       source  = "stellwerk-labs/platform-orchestrator"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
   }
 }
 
 # Deploy Platform Orchestrator Kubernetes Agent Runner using Helm chart
+resource "kubernetes_secret_v1" "runner_identity" {
+  metadata {
+    name      = "${var.prefix}-runner-identity"
+    namespace = var.runner_namespace
+  }
+  data = { "private-key.pem" = var.private_key_pem }
+}
+
+resource "kubernetes_secret_v1" "gateway_ca" {
+  count = var.orchestrator_ca_pem == "" ? 0 : 1
+  metadata {
+    name      = "${var.prefix}-orchestrator-ca"
+    namespace = var.runner_namespace
+  }
+  data = { "ca.crt" = var.orchestrator_ca_pem }
+}
+
 resource "helm_release" "platform_orchestrator_runner" {
   name       = "${var.prefix}-platform-orchestrator-runner"
   repository = "oci://ghcr.io/stellwerk-labs/charts"
   chart      = "platform-orchestrator-kubernetes-agent-runner"
-  version    = "0.1.1"
+  version    = "0.3.0"
 
   namespace        = var.runner_namespace
   create_namespace = false
@@ -33,7 +50,15 @@ resource "helm_release" "platform_orchestrator_runner" {
       platformOrchestrator = {
         orgId    = var.orchestrator_org
         runnerId = "${var.prefix}-first-deployment-agent-runner"
-        logLevel = "debug"
+        logLevel = "info"
+      }
+
+      gateway = {
+        mode                     = "simple"
+        url                      = "${trimsuffix(var.orchestrator_api_url, "/")}/runner-gateway"
+        privateKeyExistingSecret = kubernetes_secret_v1.runner_identity.metadata[0].name
+        caExistingSecret         = try(kubernetes_secret_v1.gateway_ca[0].metadata[0].name, "")
+        jobCaExistingSecret      = try(kubernetes_secret_v1.gateway_ca[0].metadata[0].name, "")
       }
 
       rbac = {
@@ -51,14 +76,6 @@ resource "helm_release" "platform_orchestrator_runner" {
         name   = var.runner_service_account_name
       }
     })
-  ]
-
-  # Set the private key separately as a sensitive value
-  set_sensitive = [
-    {
-      name  = "platformOrchestrator.privateKey"
-      value = var.private_key_pem
-    }
   ]
 
   depends_on = [platform-orchestrator_kubernetes_agent_runner.agent_runner]
@@ -227,7 +244,7 @@ resource "platform-orchestrator_kubernetes_agent_runner" "agent_runner" {
         metadata = local.pod_metadata
         spec = {
           containers = [{
-            name         = "canyon-runner"
+            name         = "main"
             env          = local.env_vars
             volumeMounts = local.volume_mounts
             securityContext = {

@@ -10,7 +10,7 @@ terraform {
     # Common providers that are always needed
     platform-orchestrator = {
       source  = "stellwerk-labs/platform-orchestrator"
-      version = "~> 1.0"
+      version = "~> 2.0"
     }
 
     tls = {
@@ -89,6 +89,8 @@ locals {
 # Requires: Docker and kind CLI installed
 # module "local" {
 #   source = "./modules/local"
+#   orchestrator_api_url = var.orchestrator_api_url
+#   orchestrator_ca_pem  = var.orchestrator_ca_pem
 
 #   prefix               = local.prefix
 #   cluster_name         = var.local_cluster_name
@@ -105,6 +107,8 @@ locals {
 
 # module "gcp" {
 #   source = "./modules/gcp"
+#   orchestrator_api_url = var.orchestrator_api_url
+#   orchestrator_ca_pem  = var.orchestrator_ca_pem
 
 #   prefix                     = local.prefix
 #   gcp_project_id             = var.gcp_project_id
@@ -121,6 +125,8 @@ locals {
 
 # module "aws" {
 #   source = "./modules/aws"
+#   orchestrator_api_url = var.orchestrator_api_url
+#   orchestrator_ca_pem  = var.orchestrator_ca_pem
 
 #   prefix                     = local.prefix
 #   aws_region                 = var.aws_region
@@ -135,6 +141,8 @@ locals {
 
 # module "azure" {
 #   source = "./modules/azure"
+#   orchestrator_api_url = var.orchestrator_api_url
+#   orchestrator_ca_pem  = var.orchestrator_ca_pem
 
 #   prefix                     = local.prefix
 #   azure_subscription_id      = var.azure_subscription_id

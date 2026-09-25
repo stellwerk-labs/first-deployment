@@ -11,6 +11,7 @@ output "resource_group_name" {
 output "cluster_endpoint" {
   description = "AKS cluster endpoint"
   value       = azurerm_kubernetes_cluster.cluster.kube_config[0].host
+  sensitive   = true
 }
 
 output "cluster_ca_certificate" {

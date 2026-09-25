@@ -1,6 +1,8 @@
 # Call the shared runner integration module
 module "runner" {
-  source = "../shared/runner-integration"
+  source               = "../shared/runner-integration"
+  orchestrator_api_url = var.orchestrator_api_url
+  orchestrator_ca_pem  = var.orchestrator_ca_pem
 
   prefix                            = var.prefix
   orchestrator_org                  = var.orchestrator_org
